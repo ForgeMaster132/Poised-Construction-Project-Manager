@@ -8,4 +8,4 @@ Capstone Project for Hyperion Dev
 "Person.java" creates people classes customer, contractor etc
 "Project.java" creates project objects using its own attributes plus person objects
 "Menu.java" handles outputting menus and providing the functionality when options are selected
-"ProjectsFile.java" handles reading from a file and writing back to that file
+"ProjectsFile.java" handles queries to and from the mysql database server
