@@ -42,9 +42,10 @@ public class Program{
 			// Creating Project
 			if(choice == 2) {
 				// Creating Project Object
-				Menu.projects.add(Menu.createProject());
+				Project project = Menu.createProject();
+				Menu.projects.add(project);
 				// Updating Projects File
-				ProjectsFile.writeProjectsToFile();
+				ProjectsFile.addProjectsToDatabase(project);
 			}
 			// Displays all Projects
 			if(choice == 3) {
@@ -89,8 +90,8 @@ public class Program{
 				if(choice == 2) {
 					try {
 						Menu.projects.get(projectSelection).changeDate();
-						// Updating Projects File
-						ProjectsFile.writeProjectsToFile();
+						// Updating Project to Database
+						ProjectsFile.updateDatabase("Deadline",(projectSelection + 1));;
 					} catch(Exception e) {
 						System.out.println("No projects exist yet");
 					}
@@ -99,8 +100,8 @@ public class Program{
 				if(choice == 3) {
 					try {
 						Menu.projects.get(projectSelection).changeAmountPaid();
-						// Updating Projects File
-						ProjectsFile.writeProjectsToFile();
+						// Updating Project to Database
+						ProjectsFile.updateDatabase("AmountPaid", (projectSelection + 1));;
 					} catch(Exception e) {
 						System.out.println("No projects exist yet");
 					}
@@ -109,8 +110,8 @@ public class Program{
 				if(choice == 4) {
 					try {
 						Menu.projects.get(projectSelection).updateContractor();
-						// Updating Projects File
-						ProjectsFile.writeProjectsToFile();
+						// Updating Project to Database
+						ProjectsFile.updateDatabase("Contractor", (projectSelection + 1));;
 					} catch(Exception e) {
 						System.out.println("No projects exist yet");
 					}
@@ -123,15 +124,16 @@ public class Program{
 							Menu.projects.get(projectSelection).totalFee, Menu.projects.get(projectSelection).totalPaidDate);
 						// Updating Finalised Status in Projects List
 						if(invoice[3] == "Finalised") {
-							Menu.projects.get(projectSelection).finalised = "Finalised";
+							Menu.projects.get(projectSelection).finalised = "Yes";
 						}
 						// Outputs Invoice
 						for(int i = 0;i < 5;i++) {
 							System.out.println(invoice[i]);
 						}
-						// Updating Projects File
-						ProjectsFile.writeProjectsToFile();
+						// Updating Project to Database
+						ProjectsFile.updateDatabase("Finalised", (projectSelection + 1));
 					} catch(Exception e) {
+						e.printStackTrace();
 						System.out.println("No projects exist yet");
 					}
 				}

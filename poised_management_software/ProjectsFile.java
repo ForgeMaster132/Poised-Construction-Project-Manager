@@ -1,7 +1,11 @@
 package poised_management_software;
 // Imports
 import java.util.*;
-import java.io.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * 
@@ -11,136 +15,155 @@ import java.io.*;
 
 public class ProjectsFile {
 	// Methods
-	/** Opens file for reading
+	
+	/** Connects to the Database
 	 * 
-	 * @return Scanner Object for Projects.txt File 
+	 * @return Statement Object of the Database
 	 */
-	public static Scanner openFile() {
+	public static Statement getDatabaseStatement() {
 		try {
-			File f = new File("src/Projects.txt");
-			Scanner fsc = new Scanner(f);
-			
-			return fsc;
-		} catch(FileNotFoundException e) {
+			Connection conn = 
+				DriverManager.getConnection("jdbc:mysql://localhost:3306/poisepms?useSSL=false&allowPublicKeyRetrieval=true",
+						"myuser", "Heyo77");
+			Statement stmnt = conn.createStatement();
+			return stmnt;
+		} catch (SQLException e) {
+			System.out.println("Could not establish connection to the Database.");
 			return null;
 		}
 	}
 	
-	/** Closes file
-	 * 
-	 * @param sc Scanner of file
-	 */
-	public static void closeFile(Scanner sc) {
-		sc.close();
-	}
-	
-	/** Reads Projects from Projects.txt file into a ArrayList
+	/** Reads Projects from Database into an ArrayList
 	 * 
 	 * @return ArrayList of Project objects
 	 */
 	public static ArrayList<Project> getProjects() {
-		// Variables
+		// Create ArrayList of projects
 		ArrayList<Project> projects = new ArrayList<Project>();
-		String lines = "";
-		
-		// Reading file
-		Scanner sc = openFile();
-		
-		if(sc == null) {
-			System.out.println("There are no projects yet. Try Creating one!");
-			ArrayList<Project> empty = new ArrayList<Project>();
-			return empty;
-		}
-		
-		// Getting Projects
-		while(sc.hasNext()){
-			lines += sc.nextLine();
-		}
-		
-		// Creating array of lines
-		String[] linesArr = lines.split("#");
 		
 		try {
-			// Populating Projects Array
-			for(int i = 0;i < linesArr.length;i++) {
-				// Splitting line into array
-				String[] projectInfo = linesArr[i].split("~");
+			Statement stmnt = getDatabaseStatement();
+			// String used to select all fields needed from tables in Database
+			String select = "select * from project"
+					+ " inner join contractor on project.CONTRA_ID = contractor.ID"
+					+ " inner join customer on project.CUST_ID = customer.ID"
+					+ " inner join architect on project.ARCH_ID = architect.ID";
+			
+			ResultSet results = stmnt.executeQuery(select);
+			
+			while(results.next()) {
+				// Creating Project Object
 				Project project = new Project();
-				// Assigning Project Values
-				project.projName = projectInfo[0];
-				project.projNum = projectInfo[1];
-				project.buildingType = projectInfo[2];
-				project.buildingAddress = projectInfo[3];
-				project.erfNum = projectInfo[4];
-				project.deadline = projectInfo[5];
 				
-				// Checking for valid values
-				try {
-				project.totalFee = Double.valueOf(projectInfo[6]);
-				} catch(Exception e) {
-					System.out.println("Total fee value for project " + i + " is not a valid amount");
-				}
-				try {
-					project.totalPaidDate = Double.valueOf(projectInfo[7]);
-				} catch(Exception e) {
-					System.out.println("Total Paid to Date value for project " + i + " is not a valid amount");
-				}
+				project.projName = results.getString("project.NAME");
+				project.projNum = results.getString("NUM");
+				project.buildingType = results.getString("BUILD_TYPE");
+				project.buildingAddress = results.getString("BUILD_ADDRESS");
+				project.erfNum = results.getString("ERF_NUM");
+				project.deadline = results.getString("DEADLINE");
+				project.totalFee = results.getDouble("TOTAL_FEE");
+				project.totalPaidDate = results.getDouble("AMOUNT_PAID");
+				project.finalised = results.getString("FINALISED");
 				
-				// Assigning Project People 
-				Person architect = new Person("Architect", projectInfo[8], projectInfo[9],projectInfo[10],projectInfo[11]);
+				// Creating and Assigning Project People
+				Person architect = new Person("Architect", results.getString("architect.NAME"), results.getString("architect.PHONE_NUM"),
+						results.getString("architect.EMAIL"),results.getString("architect.ADDRESS"));
 				project.architect = architect;
-				Person customer = new Person("Customer", projectInfo[12], projectInfo[13], projectInfo[14], projectInfo[15]);
+				
+				Person customer = new Person("Customer", results.getString("customer.NAME"), results.getString("customer.PHONE_NUM"),
+						results.getString("customer.EMAIL"),results.getString("customer.ADDRESS"));
 				project.customer = customer;
-				Person contractor = new Person("Contractor", projectInfo[16], projectInfo[17], projectInfo[18],projectInfo[19]);
+				
+				Person contractor = new Person("Contractor", results.getString("contractor.NAME"), results.getString("contractor.PHONE_NUM"),
+						results.getString("contractor.EMAIL"),results.getString("contractor.ADDRESS"));
 				project.contractor = contractor;
 				
-				// Assigning finalized Status
-				project.finalised = projectInfo[20];
-				// Adding new project to list
+				// Adding Project record to Project ArrayList
 				projects.add(project);
 			}
-		} catch(Exception e) {
-			System.out.println("There are no projects yet. Try Creating one!");
-			ArrayList<Project> empty = new ArrayList<Project>();
-			return empty;
+			
+		} catch(SQLException e) {
+			e.printStackTrace();
 		}
-		closeFile(sc);
 		
+		// Returns Project Object ArrayList
 		return projects;
 	}
 	
-	/** Writes Projects to Projects.txt file */
-	public static void writeProjectsToFile() {
+	/** Adds Project Object ArrayList info to Database */
+	public static void addProjectsToDatabase(Project project) {
+		Statement statement = getDatabaseStatement();
+		int count = 0;
+		
 		try {
-		Formatter f = new Formatter("src/Projects.txt");
-		// Writing each Projects info to file
-		for(int i = 0; i < Menu.projects.size(); i++) {
-			f.format(Menu.projects.get(i).projName + "~");
-			f.format(Menu.projects.get(i).projNum + "~");
-			f.format(Menu.projects.get(i).buildingType + "~");
-			f.format(Menu.projects.get(i).buildingAddress + "~");
-			f.format(Menu.projects.get(i).erfNum + "~");
-			f.format(Menu.projects.get(i).deadline + "~");
-			f.format(Menu.projects.get(i).totalFee + "~");
-			f.format(Menu.projects.get(i).totalPaidDate + "~");
-			f.format(Menu.projects.get(i).architect.name + "~");
-			f.format(Menu.projects.get(i).architect.phoneNum + "~");
-			f.format(Menu.projects.get(i).architect.email + "~");
-			f.format(Menu.projects.get(i).architect.address + "~");
-			f.format(Menu.projects.get(i).customer.name + "~");
-			f.format(Menu.projects.get(i).customer.phoneNum + "~");
-			f.format(Menu.projects.get(i).customer.email + "~");
-			f.format(Menu.projects.get(i).customer.address + "~");
-			f.format(Menu.projects.get(i).contractor.name + "~");
-			f.format(Menu.projects.get(i).contractor.phoneNum + "~");
-			f.format(Menu.projects.get(i).contractor.email + "~");
-			f.format(Menu.projects.get(i).contractor.address + "~");
-			f.format(Menu.projects.get(i).finalised + "#");
-			f.format("\n");
+			ResultSet num = statement.executeQuery("select NUM from project");
+			
+			while(num.next()) {
+				count ++;
+			}
+			
+			// String used to insert new Projects fields into the Database
+			String insertProjectString = "insert into project values ('" + project.projName + "', '" + project.projNum + "', '" + project.buildingType
+					+ "', '" + project.buildingAddress + "', '" + project.erfNum + "', '" + project.deadline + "', " + project.totalFee + ", "
+					+ project.totalPaidDate + ", '" + project.finalised + "', " + (count +1) + ", " + (count +1) + ", " + (count +1) + ")";
+			
+			int num1 = statement.executeUpdate(insertProjectString);
+			
+			String insertContractorString = "insert into contractor values (" + (count +1) + ", '" + project.contractor.name + "', '" + project.contractor.phoneNum
+					+ "', '" + project.contractor.email + "', '" + project.contractor.address + "')";
+			
+			int num2 = statement.executeUpdate(insertContractorString);
+			
+			String insertCustomerString = "insert into customer values (" + (count +1) + ", '" + project.customer.name + "', '" + project.customer.phoneNum
+					+ "', '" + project.customer.email + "', '" + project.customer.address + "')";
+			
+			int num3 = statement.executeUpdate(insertCustomerString);
+			
+			String insertArchitectString = "insert into architect values (" + (count +1) + ", '" + project.architect.name + "', '" + project.architect.phoneNum
+					+ "', '" + project.architect.email + "', '" + project.architect.address + "')";
+			
+			int num4 = statement.executeUpdate(insertArchitectString);
+			
+ 		} catch(SQLException e) {
+			e.printStackTrace();
 		}
-		f.close();
-		} catch(FileNotFoundException e) {
-			System.out.println("File Not Found!");
+	}
+	
+	/** Updates a Projects Record in the Database 
+	 * 
+	 * @param field Which field to update for that projects record
+	 * @param project Which Project's record to update
+	 * */
+	public static void updateDatabase(String field, int project) {
+		Statement statement = getDatabaseStatement();
+		
+		// Strings for varies Update queries
+		String updateDeadline = "update project set DEADLINE = '" + Menu.projects.get(project - 1 ).deadline + "' where CUST_ID = " + project;
+		String updateAmountPaid = "update project set AMOUNT_PAID = " + Menu.projects.get(project - 1).totalPaidDate + " where CUST_ID = " + project;
+		String updateContractor  = "update contractor set PHONE_NUM = '" + Menu.projects.get(project -1).contractor.phoneNum + "', EMAIL = '" +
+				Menu.projects.get(project - 1).contractor.email + "' where ID = " + project;
+		String updateFinalised = "update project set FINALISED = '" + Menu.projects.get(project - 1).finalised + "' where CUST_ID = " + project;
+		
+		try {
+			// If statements to decide which update to make
+			if(field.equals("Deadline")) {
+				int countDeadline = statement.executeUpdate(updateDeadline);
+			}
+			
+			if(field.equals("AmountPaid")) {
+				int countAmountPaid = statement.executeUpdate(updateAmountPaid);
+			}
+			
+			if(field.equals("Contractor")) {
+				int countContractor = statement.executeUpdate(updateContractor);
+			}
+			
+			if(field.equals("Finalised")) {
+				int countFinalised = statement.executeUpdate(updateFinalised);
+			}
+			
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 	}
 }

@@ -1,0 +1,10 @@
+create table customer (ID int NOT NULL, NAME varchar(50) NOT NULL, PHONE_NUM char(10) NOT NULL, EMAIL varchar(50) NOT NULL, ADDRESS varchar(50) NOT NULL, PRIMARY KEY(ID));
+
+
+create table contractor (ID int NOT NULL, NAME varchar(50) NOT NULL, PHONE_NUM char(10) NOT NULL, EMAIL varchar(50) NOT NULL, ADDRESS varchar(50) NOT NULL, PRIMARY KEY(ID));
+
+
+create table architect (ID int NOT NULL, NAME varchar(50) NOT NULL, PHONE_NUM char(10) NOT NULL, EMAIL varchar(50) NOT NULL, ADDRESS varchar(50) NOT NULL, PRIMARY KEY(ID));
+
+
+create table project (NAME varchar(50) NOT NULL, NUM varchar(50) NOT NULL, BUILD_TYPE varchar(50) NOT NULL, BUILD_ADDRESS varchar(50) NOT NULL, ERF_NUM varchar(50) NOT NULL, DEADLINE date NOT NULL, TOTAL_FEE decimal(15,2) UNSIGNED NOT NULL, AMOUNT_PAID decimal(15,2) UNSIGNED NOT NULL, FINALISED varchar(3) NOT NULL, CONTRA_ID int NOT NULL, CUST_ID int NOT NULL, ARCH_ID int NOT NULL, PRIMARY KEY(NUM));

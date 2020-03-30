@@ -1,6 +1,7 @@
 package poised_management_software;
 // Imports
 import java.util.*;
+import java.text.SimpleDateFormat;
 import java.time.*;
 
 /**
@@ -76,7 +77,7 @@ public class Project{
 		projectDetails += "\nProject Deadline: " + deadline;
 		projectDetails += "\nProject Total Fee: " + totalFee;
 		projectDetails += "\nAmount Paid to Date: " + totalPaidDate;
-		projectDetails += "\n" + finalised;
+		projectDetails += "\nFinalised: " + finalised;
 		// Output
 		System.out.println(projectDetails);
 
@@ -87,9 +88,18 @@ public class Project{
 	
 	/** Changes Due Date of a Project */
 	public void changeDate() {
-		System.out.print("New Deadline: ");
-		String newDate = input.next();
-		this.deadline = newDate;
+		while(true) {
+			try {
+				System.out.print("New Deadline: ");
+				String temp = input.nextLine();
+				Date newDate = new SimpleDateFormat("yyyy-MM-dd").parse(temp);
+				this.deadline = new SimpleDateFormat("yyyy-MM-dd").format(newDate);
+				break;
+			}
+			catch(Exception e) {
+				System.out.println("Please enter in valid date format! eg (2020-05-27)");
+			}
+		}
 		System.out.println("Deadline Updated!");
 	}
 	
@@ -142,7 +152,7 @@ public class Project{
 			invoice[2] = "Amount owed: " + amountToPay;
 			invoice[3] = "Finalised";
 			invoice[4] = "Date Finalised: " + LocalDateTime.now();
-			this.finalised = "Finalised";
+			this.finalised = "Yes";
 		}
 		
 		return invoice;

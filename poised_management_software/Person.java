@@ -7,11 +7,11 @@ package poised_management_software;
 
 public class Person{
 	// Variables
-	String name;
-	String phoneNum;
-	String email;
-	String address;
-	String role;
+	String name = "";
+	String phoneNum = "";
+	String email = "";
+	String address = "";
+	String role = "";
 	
 	/**
 	 * Constructor for A Person Object
